@@ -1,0 +1,16 @@
+version: '3.3'
+
+volumes:
+  postgres_data:
+
+services:
+  db:
+    image: postgres:12.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=123qwe
+      - POSTGRES_USER=app
+      - POSTGRES_DB=users
+    ports:
+      - "5432:5432"

@@ -1,0 +1,61 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Registration, authorization, identification"
+basePath: "/api/v1"
+tags:
+  - name: "Hz"
+schemes:
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+paths:
+  /register:
+    post:
+      tags:
+        - "Registration"
+      summary: "You can register here"
+      operationId: register
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "Person to register"
+          required: true
+          schema:
+            $ref: "#/definitions/Person"
+      responses:
+        201:
+          description: "You registered successfully"
+      x-swagger-router-controller: "app.api.v1.registration"
+
+definitions:
+  Person:
+    type: "object"
+    required:
+      - "first_name"
+      - "second_name"
+      - "login"
+      - "email"
+      - "password"
+    properties:
+      id:
+        type: "string"
+      first_name:
+        type: "string"
+      second_name:
+        type: "string"
+      login:
+        type: "string"
+      email:
+        type: "string"
+        format: "email"
+      password:
+        type: "string"
+    example:
+      first_name: "Ivan"
+      second_name: "Ivanov"
+      login: 'vanka'
+      email: "ivan500@gmail.com"
+      password: "SuperVanya228"
