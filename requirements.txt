@@ -1,2 +1,7 @@
 connexion
+connexion[swagger-ui]
 gevent
+pyOpenSSL==22.0.0
+sqlalchemy psycopg2-binary
+pydantic
+pydantic[dotenv]
