@@ -21,7 +21,7 @@ paths:
       parameters:
         - name: "body"
           in: "body"
-          description: "Person to register"
+          description: "email, first_name, second_name, login, password"
           required: true
           schema:
             $ref: "#/definitions/Person"
@@ -31,84 +31,125 @@ paths:
         400:
           description: "User already exists"
       x-swagger-router-controller: "app.api.v1.registration"
-  /register/{provider}:
-    get:
+  /role:
+    post:
       tags:
-        - "Oauth Registration"
-      summary: "You can register here via social networks"
-      operationId: register_oauth
+        - "CRUD"
+      summary: "Create a role"
+      operationId: create_role
       parameters:
-        - name: "provider"
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Role"
+      responses:
+        201:
+          description: "Role created"
+        400:
+          description: "Role already exists"
+      x-swagger-router-controller: "app.api.v1.role"
+  /role/{role_id}:
+    put:
+      tags:
+        - "CRUD"
+      summary: "Change a role"
+      operationId: change_role
+      parameters:
+        - name: "role_id"
           in: "path"
-          description: "Person to register via social networks"
+          required: true
+          type: "string"
+        - name: "body"
+          in: "body"
+          required: true
+          schema:
+            $ref: "#/definitions/Role"
+      responses:
+        200:
+          description: "Role changed"
+        400:
+          description: "Cannot change this role or Role already exists"
+        404:
+          description: "No such role"
+      x-swagger-router-controller: "app.api.v1.role"
+    delete:
+      tags:
+        - "CRUD"
+      summary: "Delete a role"
+      operationId: delete_role
+      parameters:
+        - name: "role_id"
+          in: "path"
           required: true
           type: "string"
       responses:
-        308:
-          description: "You will be redirected"
-      x-swagger-router-controller: "app.api.v1.registration"
-  /authorize:
-    get:
-      tags:
-        - "Oauth Registration"
-      summary: "You can register here via social networks"
-      operationId: registerauthorize
-      responses:
-        201:
-          description: "You registered successfully"
+        200:
+          description: "Role deleted"
         400:
-          description: "User already exists"
-      x-swagger-router-controller: "app.api.v1.registration"
-  /login/{provider}:
-    get:
+          description: "Cannot delete this role"
+        404:
+          description: "No such role"
+      x-swagger-router-controller: "app.api.v1.role"
+  /role/{user_id}/{role_id}:
+    post:
       tags:
-        - "Oauth Log In"
-      summary: "You can log in here via social networks"
-      operationId: login
+        - "CRUD"
+      summary: "Give a role"
+      operationId: give_role
       parameters:
-        - name: "provider"
+        - name: "user_id"
           in: "path"
-          description: "Person to login via social networks"
+          required: true
+          type: "string"
+        - name: "role_id"
+          in: "path"
           required: true
           type: "string"
       responses:
-        308:
-          description: "You will be redirected"
-      x-swagger-router-controller: "app.api.v1.registration"
-  /loginauthorize:
-    get:
-      tags:
-        - "Oauth Log In"
-      summary: "You can log in here via social networks"
-      operationId: loginauthorize
-      responses:
         201:
-          description: "You logged in successfully"
+          description: "Role is given"
         400:
-          description: "No such user"
-      x-swagger-router-controller: "app.api.v1.registration"
-  /logout:
-    get:
+          description: "User already has this role"
+        404:
+          description: "No such role or user"
+      x-swagger-router-controller: "app.api.v1.role"
+    delete:
       tags:
-        - "Log Out"
-      summary: "You can log out here"
-      operationId: logout_oauth
+        - "CRUD"
+      summary: "Take a role"
+      operationId: take_role
+      parameters:
+        - name: "user_id"
+          in: "path"
+          required: true
+          type: "string"
+        - name: "role_id"
+          in: "path"
+          required: true
+          type: "string"
       responses:
         200:
-          description: "You logged out"
-      x-swagger-router-controller: "app.api.v1.registration"
-  /index:
-    get:
-      tags:
-        - "smth"
-      summary: "smth"
-      operationId: main_func
-      responses:
-        200:
-          description: "lol"
-      x-swagger-router-controller: "app.api.v1.registration"
+          description: "Role was taken"
+        400:
+          description: "No such role or user"
+      x-swagger-router-controller: "app.api.v1.role"
+
   
 definitions:
+  Role:
+    type: "object"
+    required:
+      - "name"
+      - "description"
+    properties:
+      name:
+        type: "string"
+      descriptions:
+        type: "string"
+    example:
+      name: "user"
+      description: "Cool role"
   Person:
     type: "object"
     required:
@@ -137,4 +178,4 @@ definitions:
       second_name: "Ivanov"
       login: 'vanka'
       email: "ivan500@gmail.com"
-      password: "SuperVanya228"
+      password: "SuperVanya228!"
