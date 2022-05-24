@@ -10,3 +10,4 @@ class Settings(BaseSettings):
     secret_key: str = Field('super_secret', end='SECRET_KEY')
     client_id: str = Field('', env='CLIENT_ID')
     client_secret: str = Field('', env='CLIENT_SECRET')
+    jwt_secret_key: str = Field('super_secret', end='JWT_SECRET_KEY')
