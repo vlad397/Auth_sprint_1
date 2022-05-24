@@ -1,12 +1,12 @@
-Flask==1.1.2
+Flask==2.1.2
 flask_sqlalchemy
 connexion
 connexion[swagger-ui]
 gevent
-Werkzeug==1.0.1
+Werkzeug==2.1.2
 requests==2.23.0
-itsdangerous==1.1.0
-Jinja2==2.11.2
+itsdangerous==2.1.2
+Jinja2==3.1.2
 MarkupSafe==1.1.1
 Authlib==0.14.1
 pyOpenSSL==22.0.0
@@ -14,3 +14,5 @@ sqlalchemy
 psycopg2-binary
 pydantic
 pydantic[dotenv]
+Flask-JWT-Extended==4.4.0
+passlib==1.7.1

@@ -31,6 +31,67 @@ paths:
         400:
           description: "User already exists"
       x-swagger-router-controller: "app.api.v1.registration"
+  /login:
+    post:
+      tags:
+        - "Token"
+      summary: "You can log in here"
+      operationId: login
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "email, password"
+          required: true
+          schema:
+            $ref: "#/definitions/PersonLogIn"
+      responses:
+        200:
+          description: "Logged in successfully"
+        400:
+          description: "Wrong password"
+        404:
+          description: "No such user"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /token_refresh:
+    post:
+      tags:
+        - "Token"
+      summary: "Refresh token"
+      operationId: refresh_token
+      responses:
+        200:
+          description: "Token refreshed"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /logout:
+    post:
+      tags:
+        - "Token"
+      summary: "Log out"
+      operationId: logout
+      responses:
+        200:
+          description: "Access token has been revoked"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /logout_refresh:
+    post:
+      tags:
+        - "Token"
+      summary: "Log out"
+      operationId: logout_refresh
+      responses:
+        200:
+          description: "Refresh token has been revoked"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /index:
+    get:
+      tags:
+        - "lol"
+      summary: "lol"
+      operationId: index
+      responses:
+        200:
+          description: "Refresh token has been revoked"
+      x-swagger-router-controller: "app.api.v1.registration"
   /role:
     post:
       tags:
@@ -177,5 +238,20 @@ definitions:
       first_name: "Ivan"
       second_name: "Ivanov"
       login: 'vanka'
+      email: "ivan500@gmail.com"
+      password: "SuperVanya228!"
+  PersonLogIn:
+    type: "object"
+    required:
+      - "email"
+      - "password"
+    properties:
+      email:
+        type: "string"
+        format: "email"
+      password:
+        type: "string"
+        format: "password"
+    example:
       email: "ivan500@gmail.com"
       password: "SuperVanya228!"
