@@ -1,10 +1,14 @@
-import config
+from . import config, commands
 
 connex_app = config.connex_app
 connex_app.add_api('auth.yaml', strict_validation=True)
 
+flask_app = config.app
+
+flask_app.register_blueprint(commands.usersbp)
+
 if __name__ == '__main__':
-    connex_app.run(debug=True)
+    flask_app.run(debug=True)
 
 
 # Ниже попытка подрубить https, пока без успеха

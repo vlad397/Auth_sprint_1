@@ -2,14 +2,16 @@ import re
 from http import HTTPStatus
 
 from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                get_jwt, get_jwt_identity, jwt_required)
+                                get_jwt, get_jwt_identity, jwt_required, verify_jwt_in_request)
 from jsonschema import draft4_format_checker
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from db.db import db
-from db.db_models import RevokedTokenModel, User
+from ....db.db import db
+from ....db.db_models import RevokedTokenModel, User, AuthHistory
+from flask import request, jsonify
+from datetime import datetime
 
 
 @draft4_format_checker.checks('email')
@@ -47,15 +49,28 @@ def register(body: dict) -> tuple[str, HTTPStatus]:
 
 def login(body: dict) -> tuple[str | dict, HTTPStatus]:
     """Функция входа в аккаунт"""
+    current_token = verify_jwt_in_request(optional=True)
+
+    if current_token:
+        return 'Already logged in', HTTPStatus.NOT_ACCEPTABLE
+
     user = db.session.query(User).filter(User.email == body['email']).first()
     if not user:
         return 'No such user', HTTPStatus.NOT_FOUND
 
     if check_password_hash(user.password, body['password']):
+        agent = request.user_agent
+
+        auth = AuthHistory(user_id=user.id, browser=agent.browser,
+                           platform=agent.platform, timestamp=datetime.now())
+        db.session.add(auth)
+        db.session.commit()
+
         claims = {
             'first_name': user.first_name, 'second_name': user.second_name,
             'login': user.login
             }
+
         access_token = create_access_token(identity=body['email'],
                                            additional_claims=claims)
         refresh_token = create_refresh_token(identity=body['email'],
@@ -99,7 +114,10 @@ def logout_refresh() -> tuple[str, HTTPStatus]:
 
 
 @jwt_required()
-def index() -> tuple[str, HTTPStatus]:
-    """Тестовая функция"""
+def get_history():
+    """История входа в аккаунт"""
     current_user = get_jwt_identity()
-    return f'Hello, {current_user}', HTTPStatus.OK
+    user = db.session.query(User).filter(User.email == current_user).first()
+    history = db.session.query(
+        AuthHistory).filter(AuthHistory.user_id == user.id).all()
+    return {'history': f'{history}'}

@@ -7,7 +7,7 @@ Werkzeug==2.1.2
 requests==2.23.0
 itsdangerous==2.1.2
 Jinja2==3.1.2
-MarkupSafe==1.1.1
+#MarkupSafe==1.1.1
 Authlib==0.14.1
 pyOpenSSL==22.0.0
 sqlalchemy
@@ -16,3 +16,4 @@ pydantic
 pydantic[dotenv]
 Flask-JWT-Extended==4.4.0
 passlib==1.7.1
+flask-migrate==3.1.0
