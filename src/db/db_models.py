@@ -90,3 +90,18 @@ class RevokedTokenModel(db.Model):
     def is_jti_blocklisted(cls, jti):
         query = cls.query.filter_by(jti=jti).first()
         return bool(query)
+
+
+class AuthHistory(db.Model):
+    __tablename__ = "auth_history"
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
+                   unique=True, nullable=False)
+    user_id = db.Column(
+        "user_id", UUID(as_uuid=True), db.ForeignKey("users.id"))
+    timestamp = db.Column(db.DateTime)
+    browser = db.Column(db.Text, nullable=True)
+    platform = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f'{self.timestamp}::{self.browser}::{self.platform}'

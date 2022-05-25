@@ -3,12 +3,22 @@ from http import HTTPStatus
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 
-from db.db import db
-from db.db_models import Role, RolesUsers, User
+from ....db.db import db
+from ....db.db_models import Role, RolesUsers, User
+
+from flask_jwt_extended import (create_access_token, create_refresh_token,
+                                get_jwt, get_jwt_identity, jwt_required)
+
+from .permissions import is_admin, is_super_admin
 
 
+@jwt_required()
 def create_role(body: dict) -> tuple[str, HTTPStatus]:
     """Создание роли"""
+    current_user = get_jwt_identity()
+    user = db.session.query(User).filter(User.email == current_user).first()
+    if not is_admin(user) and not is_super_admin(user):
+        return 'You do not have rights', HTTPStatus.FORBIDDEN
     role = Role(name=body['name'], description=body['description'])
     try:
         db.session.add(role)
@@ -21,8 +31,13 @@ def create_role(body: dict) -> tuple[str, HTTPStatus]:
             return 'Unexpected error', HTTPStatus.BAD_REQUEST
 
 
+@jwt_required()
 def change_role(role_id: str, body: dict) -> tuple[str, HTTPStatus]:
     """Изменение роли"""
+    current_user = get_jwt_identity()
+    user = db.session.query(User).filter(User.email == current_user).first()
+    if not is_admin(user) and not is_super_admin(user):
+        return 'You do not have rights', HTTPStatus.FORBIDDEN
     role = db.session.query(Role).filter(Role.id == role_id).first()
     if role:
         if role in Role.Meta.PROTECTED_ROLE_NAMES:
@@ -38,8 +53,13 @@ def change_role(role_id: str, body: dict) -> tuple[str, HTTPStatus]:
     return 'No such role', HTTPStatus.NOT_FOUND
 
 
+@jwt_required()
 def delete_role(role_id: str) -> tuple[str, HTTPStatus]:
     """Удаление роли"""
+    current_user = get_jwt_identity()
+    user = db.session.query(User).filter(User.email == current_user).first()
+    if not is_admin(user) and not is_super_admin(user):
+        return 'You do not have rights', HTTPStatus.FORBIDDEN
     role = db.session.query(Role).filter(Role.id == role_id).first()
     if role:
         if role in Role.Meta.PROTECTED_ROLE_NAMES:
@@ -50,11 +70,16 @@ def delete_role(role_id: str) -> tuple[str, HTTPStatus]:
     return 'No such role', HTTPStatus.NOT_FOUND
 
 
+@jwt_required()
 def give_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
     """Назначение роли пользователю"""
-    user = db.session.query(User).filter(User.id == user_id).first()
+    current_user = get_jwt_identity()
+    user = db.session.query(User).filter(User.email == current_user).first()
+    if not is_admin(user) and not is_super_admin(user):
+        return 'You do not have rights', HTTPStatus.FORBIDDEN
+    request_user = db.session.query(User).filter(User.id == user_id).first()
     role = db.session.query(Role).filter(Role.id == role_id).first()
-    if user and role:
+    if request_user and role:
         user_role = RolesUsers(user_id=user_id, role_id=role_id)
         try:
             db.session.add(user_role)
@@ -66,8 +91,13 @@ def give_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
     return 'No such role or user', HTTPStatus.NOT_FOUND
 
 
+@jwt_required()
 def take_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
     """Удаление роли пользователя"""
+    current_user = get_jwt_identity()
+    user = db.session.query(User).filter(User.email == current_user).first()
+    if not is_admin(user) and not is_super_admin(user):
+        return 'You do not have rights', HTTPStatus.FORBIDDEN
     user_role = db.session.query(RolesUsers).filter(
         user_id == user_id, role_id == role_id
     ).first()

@@ -30,7 +30,7 @@ paths:
           description: "You registered successfully"
         400:
           description: "User already exists"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
   /login:
     post:
       tags:
@@ -51,7 +51,9 @@ paths:
           description: "Wrong password"
         404:
           description: "No such user"
-      x-swagger-router-controller: "app.api.v1.registration"
+        406:
+          description: "Already logged in"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
   /token_refresh:
     post:
       tags:
@@ -61,7 +63,7 @@ paths:
       responses:
         200:
           description: "Token refreshed"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
   /logout:
     post:
       tags:
@@ -71,7 +73,7 @@ paths:
       responses:
         200:
           description: "Access token has been revoked"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
   /logout_refresh:
     post:
       tags:
@@ -81,17 +83,7 @@ paths:
       responses:
         200:
           description: "Refresh token has been revoked"
-      x-swagger-router-controller: "app.api.v1.registration"
-  /index:
-    get:
-      tags:
-        - "lol"
-      summary: "lol"
-      operationId: index
-      responses:
-        200:
-          description: "Refresh token has been revoked"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
   /role:
     post:
       tags:
@@ -109,7 +101,9 @@ paths:
           description: "Role created"
         400:
           description: "Role already exists"
-      x-swagger-router-controller: "app.api.v1.role"
+        403:
+          description: "You do not have rights"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
   /role/{role_id}:
     put:
       tags:
@@ -131,9 +125,11 @@ paths:
           description: "Role changed"
         400:
           description: "Cannot change this role or Role already exists"
+        403:
+          description: "You do not have rights"
         404:
           description: "No such role"
-      x-swagger-router-controller: "app.api.v1.role"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
     delete:
       tags:
         - "CRUD"
@@ -149,9 +145,11 @@ paths:
           description: "Role deleted"
         400:
           description: "Cannot delete this role"
+        403:
+          description: "You do not have rights"
         404:
           description: "No such role"
-      x-swagger-router-controller: "app.api.v1.role"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
   /role/{user_id}/{role_id}:
     post:
       tags:
@@ -172,9 +170,11 @@ paths:
           description: "Role is given"
         400:
           description: "User already has this role"
+        403:
+          description: "You do not have rights"
         404:
           description: "No such role or user"
-      x-swagger-router-controller: "app.api.v1.role"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
     delete:
       tags:
         - "CRUD"
@@ -194,7 +194,19 @@ paths:
           description: "Role was taken"
         400:
           description: "No such role or user"
-      x-swagger-router-controller: "app.api.v1.role"
+        403:
+          description: "You do not have rights"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
+  /history:
+    get:
+      tags:
+        - "History"
+      summary: "Log in history"
+      operationId: get_history
+      responses:
+        200:
+          description: "Your history"
+      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
 
   
 definitions:
