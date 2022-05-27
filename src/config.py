@@ -1,21 +1,19 @@
-import connexion
-from flask_jwt_extended import JWTManager
-from werkzeug.security import generate_password_hash
-
-from .db.db import db, init_db
-from .db.db_models import (BasicRoleEnum, RevokedTokenModel, Role, RolesUsers,
-                          User)
-from .settings import Settings
-from flask_migrate import Migrate
 import os
 
+import connexion
+from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 
+from db.db import db, init_db
+from db.db_models import RevokedTokenModel
+from settings import Settings
 
 settings = Settings(_env_file='.env', _env_file_encoding='utf-8')
 
-
 connex_app = connexion.App(__name__,
                            specification_dir='../openapi/', server='gevent')
+connex_app.add_api('auth.yaml', strict_validation=True)
+
 app = connex_app.app
 
 app.secret_key = settings.secret_key

@@ -1,17 +1,18 @@
 import re
+from datetime import datetime
 from http import HTTPStatus
 
+from flask import request
 from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                get_jwt, get_jwt_identity, jwt_required, verify_jwt_in_request)
+                                get_jwt, get_jwt_identity, jwt_required,
+                                verify_jwt_in_request)
 from jsonschema import draft4_format_checker
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from ....db.db import db
-from ....db.db_models import RevokedTokenModel, User, AuthHistory
-from flask import request, jsonify
-from datetime import datetime
+from db.db import db
+from db.db_models import AuthHistory, RevokedTokenModel, User
 
 
 @draft4_format_checker.checks('email')
@@ -34,12 +35,12 @@ def register(body: dict) -> tuple[str, HTTPStatus]:
         user = User(
             first_name=body['first_name'], second_name=body['second_name'],
             login=body['login'], email=body['email'],
-            password=generate_password_hash(body['password']),
-            role=None
+            password=generate_password_hash(body['password'])
         )
         db.session.add(user)
         db.session.commit()
         return 'Successfully registered', HTTPStatus.CREATED
+
     except IntegrityError as err:
         if isinstance(err.orig, UniqueViolation):
             return 'User already exists', HTTPStatus.BAD_REQUEST
@@ -51,14 +52,16 @@ def login(body: dict) -> tuple[str | dict, HTTPStatus]:
     """Функция входа в аккаунт"""
     current_token = verify_jwt_in_request(optional=True)
 
+    # Если в заголовке уже есть токен, то вход не нужен
     if current_token:
         return 'Already logged in', HTTPStatus.NOT_ACCEPTABLE
 
-    user = db.session.query(User).filter(User.email == body['email']).first()
+    user = User.query.filter_by(email=body['email']).first()
     if not user:
         return 'No such user', HTTPStatus.NOT_FOUND
 
     if check_password_hash(user.password, body['password']):
+        # TODO: request.user_agent не работает в новых версиях flask, werkzeug
         agent = request.user_agent
 
         auth = AuthHistory(user_id=user.id, browser=agent.browser,
@@ -77,21 +80,22 @@ def login(body: dict) -> tuple[str | dict, HTTPStatus]:
                                              additional_claims=claims)
         return ({'access_token': access_token, 'refresh_token': refresh_token},
                 HTTPStatus.OK)
-    else:
-        return 'Wrong password', HTTPStatus.BAD_REQUEST
+    return 'Wrong password', HTTPStatus.BAD_REQUEST
 
 
 @jwt_required(refresh=True)
 def refresh_token() -> tuple[dict, HTTPStatus]:
     """Функция обновления access-токена"""
     current_user = get_jwt_identity()
-    user = db.session.query(User).filter(User.email == current_user).first()
+    user = User.query.filter_by(email=current_user).first()
+
     claims = {
             'first_name': user.first_name, 'second_name': user.second_name,
             'login': user.login
             }
     access_token = create_access_token(identity=current_user,
                                        additional_claims=claims)
+
     return {'access_token': access_token}, HTTPStatus.OK
 
 
@@ -114,10 +118,46 @@ def logout_refresh() -> tuple[str, HTTPStatus]:
 
 
 @jwt_required()
-def get_history():
+def get_history() -> tuple[dict, HTTPStatus]:
     """История входа в аккаунт"""
     current_user = get_jwt_identity()
-    user = db.session.query(User).filter(User.email == current_user).first()
+    user = User.query.filter_by(email=current_user).first()
+
     history = db.session.query(
         AuthHistory).filter(AuthHistory.user_id == user.id).all()
-    return {'history': f'{history}'}
+
+    return {'history': f'{history}'}, HTTPStatus.OK
+
+
+@jwt_required()
+def change_login(body) -> tuple[str, HTTPStatus]:
+    """Изменение логина пользователя"""
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first()
+
+    if check_password_hash(user.password, body['password']):
+        try:
+            user.login = body['login']
+            db.session.commit()
+            return 'Login changed', HTTPStatus.OK
+
+        except IntegrityError as err:
+            if isinstance(err.orig, UniqueViolation):
+                return ('User with that login already exists',
+                        HTTPStatus.BAD_REQUEST)
+
+    return 'Wrong password', HTTPStatus.BAD_REQUEST
+
+
+@jwt_required()
+def change_password(body) -> tuple[str, HTTPStatus]:
+    """Изменение пароля пользователя"""
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first()
+
+    if check_password_hash(user.password, body['old_password']):
+        user.password = generate_password_hash(body['new_password'])
+        db.session.commit()
+        return 'Password changed', HTTPStatus.OK
+
+    return 'Wrong password', HTTPStatus.BAD_REQUEST
