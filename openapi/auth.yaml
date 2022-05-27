@@ -15,7 +15,7 @@ paths:
   /register:
     post:
       tags:
-        - "Registration"
+        - "Users"
       summary: "You can register here"
       operationId: register
       parameters:
@@ -30,11 +30,11 @@ paths:
           description: "You registered successfully"
         400:
           description: "User already exists"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.registration"
   /login:
     post:
       tags:
-        - "Token"
+        - "Users"
       summary: "You can log in here"
       operationId: login
       parameters:
@@ -53,37 +53,37 @@ paths:
           description: "No such user"
         406:
           description: "Already logged in"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.registration"
   /token_refresh:
     post:
       tags:
-        - "Token"
+        - "Users"
       summary: "Refresh token"
       operationId: refresh_token
       responses:
         200:
           description: "Token refreshed"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.registration"
   /logout:
     post:
       tags:
-        - "Token"
+        - "Users"
       summary: "Log out"
       operationId: logout
       responses:
         200:
           description: "Access token has been revoked"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.registration"
   /logout_refresh:
     post:
       tags:
-        - "Token"
+        - "Users"
       summary: "Log out"
       operationId: logout_refresh
       responses:
         200:
           description: "Refresh token has been revoked"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.registration"
   /role:
     post:
       tags:
@@ -103,7 +103,7 @@ paths:
           description: "Role already exists"
         403:
           description: "You do not have rights"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
+      x-swagger-router-controller: "app.api.v1.role"
   /role/{role_id}:
     put:
       tags:
@@ -129,7 +129,7 @@ paths:
           description: "You do not have rights"
         404:
           description: "No such role"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
+      x-swagger-router-controller: "app.api.v1.role"
     delete:
       tags:
         - "CRUD"
@@ -149,7 +149,7 @@ paths:
           description: "You do not have rights"
         404:
           description: "No such role"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
+      x-swagger-router-controller: "app.api.v1.role"
   /role/{user_id}/{role_id}:
     post:
       tags:
@@ -174,7 +174,7 @@ paths:
           description: "You do not have rights"
         404:
           description: "No such role or user"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
+      x-swagger-router-controller: "app.api.v1.role"
     delete:
       tags:
         - "CRUD"
@@ -196,17 +196,55 @@ paths:
           description: "No such role or user"
         403:
           description: "You do not have rights"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.role"
+      x-swagger-router-controller: "app.api.v1.role"
   /history:
     get:
       tags:
-        - "History"
+        - "Users"
       summary: "Log in history"
       operationId: get_history
       responses:
         200:
           description: "Your history"
-      x-swagger-router-controller: "Auth_sprint_1.src.app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /change_login:
+    post:
+      tags:
+        - "Users"
+      summary: "You can change login here"
+      operationId: change_login
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "login, password"
+          required: true
+          schema:
+            $ref: "#/definitions/ChangeLogin"
+      responses:
+        200:
+          description: "Login changed"
+        400:
+          description: "User with that login already exists or Wrong password"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /change_password:
+    post:
+      tags:
+        - "Users"
+      summary: "You can change password here"
+      operationId: change_password
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "old_password, new_password"
+          required: true
+          schema:
+            $ref: "#/definitions/ChangePassword"
+      responses:
+        200:
+          description: "Password changed"
+        400:
+          description: "Wrong password"
+      x-swagger-router-controller: "app.api.v1.registration"
 
   
 definitions:
@@ -267,3 +305,32 @@ definitions:
     example:
       email: "ivan500@gmail.com"
       password: "SuperVanya228!"
+  ChangeLogin:
+    type: "object"
+    required:
+      - "login"
+      - "password"
+    properties:
+      login:
+        type: "string"
+      password:
+        type: "string"
+        format: "password"
+    example:
+      login: "ivan500"
+      password: "SuperVanya229!"
+  ChangePassword:
+    type: "object"
+    required:
+      - "old_password"
+      - "new_password"
+    properties:
+      old_password:
+        type: "string"
+        format: "password"
+      new_password:
+        type: "string"
+        format: "password"
+    example:
+      old_password: "SuperVanya228!"
+      new_password: "SuperVanya229!"
