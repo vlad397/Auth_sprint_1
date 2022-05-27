@@ -24,13 +24,13 @@ class Role(db.Model):
     description = db.Column(db.String, unique=False, nullable=False)
 
     def __str__(self):
-        return f"<Role {self.name}>"
+        return self.name
 
     class Meta:
-        PROTECTED_ROLE_NAMES = (
+        PROTECTED_ROLE_NAMES = [
             BasicRoleEnum.admin.value,
             BasicRoleEnum.superadmin.value,
-        )
+        ]
 
 
 class RolesUsers(db.Model):
