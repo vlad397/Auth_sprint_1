@@ -47,7 +47,7 @@ def change_role(role_id: str, body: dict) -> tuple[str, HTTPStatus]:
 
     if role:
         # Если пытаются изменить защищенные роли - отказ
-        if role in Role.Meta.PROTECTED_ROLE_NAMES:
+        if str(role) in Role.Meta.PROTECTED_ROLE_NAMES:
             return 'Cannot change this role', HTTPStatus.BAD_REQUEST
 
         try:
@@ -76,7 +76,7 @@ def delete_role(role_id: str) -> tuple[str, HTTPStatus]:
 
     if role:
         # Если пытаются удалить защищенные роли - отказ
-        if role in Role.Meta.PROTECTED_ROLE_NAMES:
+        if str(role) in Role.Meta.PROTECTED_ROLE_NAMES:
             return 'Cannot delete this role', HTTPStatus.BAD_REQUEST
 
         db.session.delete(role)
@@ -99,6 +99,9 @@ def give_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
     request_user = User.query.filter_by(id=user_id).first()
     role = Role.query.filter_by(id=role_id).first()
 
+    if not request_user:
+        return 'No such user', HTTPStatus.NOT_FOUND
+
     # Если админ пытается дать роль суперадмину - отказ
     if admin_affects_on_superadmin(user, request_user):
         return 'You do not have rights', HTTPStatus.FORBIDDEN
@@ -115,7 +118,7 @@ def give_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
 
         return 'Role is given', HTTPStatus.CREATED
 
-    return 'No such role or user', HTTPStatus.NOT_FOUND
+    return 'No such role', HTTPStatus.NOT_FOUND
 
 
 @jwt_required()
@@ -130,6 +133,9 @@ def take_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
 
     request_user = User.query.filter_by(id=user_id).first()
 
+    if not request_user:
+        return 'No such user', HTTPStatus.NOT_FOUND
+
     # Если админ пытается забрать роль суперадмина - отказ
     if admin_affects_on_superadmin(user, request_user):
         return 'You do not have rights', HTTPStatus.FORBIDDEN
@@ -141,4 +147,4 @@ def take_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
         db.session.delete(user_role)
         db.session.commit()
         return 'Role was taken', HTTPStatus.OK
-    return 'No such role or user', HTTPStatus.BAD_REQUEST
+    return 'No such role', HTTPStatus.NOT_FOUND
