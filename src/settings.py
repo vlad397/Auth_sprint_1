@@ -11,3 +11,6 @@ class Settings(BaseSettings):
     client_id: str = Field('', env='CLIENT_ID')
     client_secret: str = Field('', env='CLIENT_SECRET')
     jwt_secret_key: str = Field('super_secret', end='JWT_SECRET_KEY')
+    wsgi_host: str = Field('0.0.0.0')
+    wsgi_port: int = Field(8008)
+    workers: int = 3

@@ -45,6 +45,9 @@ class RolesUsers(db.Model):
     role_id = db.Column(
         "role_id", UUID(as_uuid=True), db.ForeignKey("roles.id"))
 
+    def __str__(self):
+        return f"<User {self.user_id}> Role {self.role_id}"
+
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -62,13 +65,12 @@ class User(db.Model):
         backref=db.backref("users", lazy="dynamic"),
     )
 
-    def __init__(self, first_name, second_name, email, login, password, role):
+    def __init__(self, first_name, second_name, email, login, password):
         self.first_name = first_name
         self.second_name = second_name
         self.email = email
         self.login = login
         self.password = password
-        self.role = role
 
     def __repr__(self):
         return f'<User {self.login}>'
