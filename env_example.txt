@@ -1,8 +1,9 @@
 POSTGRES_PASSWORD=123qwe
 POSTGRES_USER=app
 POSTGRES_DB=users
-HOST=127.0.0.1
+HOST=db
 PORT=5000
 SECRET_KEY=b78b6b47f7d9abf8bccaaf3294081ebb97f7c4949109f885
 CLIENT_ID=837729989188-5p3o0rg4gnaathu9p0pos92imse55p7h.apps.googleusercontent.com
 CLIENT_SECRET=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
+JWT_SECRET_KEY=a97sv3b8r@k&c7gbqad2wyqu3qzm)v+j=94zxtu@gzalqwsxfi
