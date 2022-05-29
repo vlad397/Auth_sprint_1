@@ -21,6 +21,7 @@ app.config['JWT_SECRET_KEY'] = settings.jwt_secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = (f'postgresql://{settings.pg_user}:'
                                          f'{settings.pg_password}@'
                                          f'{settings.host}/{settings.pg_db}')
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 
 init_db(app)

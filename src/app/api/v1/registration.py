@@ -13,6 +13,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from db.db import db
 from db.db_models import AuthHistory, RevokedTokenModel, User
+from app.response_messages import ReqMessage
 
 
 @draft4_format_checker.checks('email')
@@ -39,13 +40,13 @@ def register(body: dict) -> tuple[str, HTTPStatus]:
         )
         db.session.add(user)
         db.session.commit()
-        return 'Successfully registered', HTTPStatus.CREATED
+        return ReqMessage.SUCCESS_REG, HTTPStatus.CREATED
 
     except IntegrityError as err:
         if isinstance(err.orig, UniqueViolation):
-            return 'User already exists', HTTPStatus.BAD_REQUEST
+            return ReqMessage.USER_EXIST, HTTPStatus.BAD_REQUEST
         else:
-            return 'Unexpected error', HTTPStatus.BAD_REQUEST
+            return ReqMessage.UNEXPECTED_ERROR, HTTPStatus.BAD_REQUEST
 
 
 def login(body: dict) -> tuple[str | dict, HTTPStatus]:
@@ -54,11 +55,11 @@ def login(body: dict) -> tuple[str | dict, HTTPStatus]:
 
     # Если в заголовке уже есть токен, то вход не нужен
     if current_token:
-        return 'Already logged in', HTTPStatus.NOT_ACCEPTABLE
+        return ReqMessage.ALREADY_LOGIN, HTTPStatus.NOT_ACCEPTABLE
 
     user = User.query.filter_by(email=body['email']).first()
     if not user:
-        return 'No such user', HTTPStatus.NOT_FOUND
+        return ReqMessage.NOT_EXIST_USER, HTTPStatus.NOT_FOUND
 
     if check_password_hash(user.password, body['password']):
         # TODO: request.user_agent не работает в новых версиях flask, werkzeug
@@ -80,7 +81,7 @@ def login(body: dict) -> tuple[str | dict, HTTPStatus]:
                                              additional_claims=claims)
         return ({'access_token': access_token, 'refresh_token': refresh_token},
                 HTTPStatus.OK)
-    return 'Wrong password', HTTPStatus.BAD_REQUEST
+    return ReqMessage.WRONG_PASSWORD, HTTPStatus.BAD_REQUEST
 
 
 @jwt_required(refresh=True)
@@ -105,7 +106,7 @@ def logout() -> tuple[str, HTTPStatus]:
     jti = get_jwt()['jti']
     revoked_token = RevokedTokenModel(jti=jti)
     revoked_token.add()
-    return 'Access token has been revoked', HTTPStatus.OK
+    return ReqMessage.LOGOUT_ACCESS, HTTPStatus.OK
 
 
 @jwt_required(refresh=True)
@@ -114,17 +115,17 @@ def logout_refresh() -> tuple[str, HTTPStatus]:
     jti = get_jwt()['jti']
     revoked_token = RevokedTokenModel(jti=jti)
     revoked_token.add()
-    return 'Refresh token has been revoked', HTTPStatus.OK
+    return ReqMessage.LOGOUT_REFRESH, HTTPStatus.OK
 
 
 @jwt_required()
-def get_history() -> tuple[dict, HTTPStatus]:
+def get_history(page: int = 1, count: int = 50) -> tuple[dict, HTTPStatus]:
     """История входа в аккаунт"""
     current_user = get_jwt_identity()
     user = User.query.filter_by(email=current_user).first()
 
     history = db.session.query(
-        AuthHistory).filter(AuthHistory.user_id == user.id).all()
+        AuthHistory).filter(AuthHistory.user_id == user.id).paginate(page=page, per_page=count, error_out=False).items
 
     return {'history': f'{history}'}, HTTPStatus.OK
 
@@ -139,14 +140,14 @@ def change_login(body) -> tuple[str, HTTPStatus]:
         try:
             user.login = body['login']
             db.session.commit()
-            return 'Login changed', HTTPStatus.OK
+            return ReqMessage.SUCCESS_LOGIN_CHANGE, HTTPStatus.OK
 
         except IntegrityError as err:
             if isinstance(err.orig, UniqueViolation):
-                return ('User with that login already exists',
+                return (ReqMessage.USER_EXIST,
                         HTTPStatus.BAD_REQUEST)
 
-    return 'Wrong password', HTTPStatus.BAD_REQUEST
+    return ReqMessage.WRONG_PASSWORD, HTTPStatus.BAD_REQUEST
 
 
 @jwt_required()
@@ -158,6 +159,6 @@ def change_password(body) -> tuple[str, HTTPStatus]:
     if check_password_hash(user.password, body['old_password']):
         user.password = generate_password_hash(body['new_password'])
         db.session.commit()
-        return 'Password changed', HTTPStatus.OK
+        return ReqMessage.SUCCESS_PASS_CHANGE, HTTPStatus.OK
 
-    return 'Wrong password', HTTPStatus.BAD_REQUEST
+    return ReqMessage.WRONG_PASSWORD, HTTPStatus.BAD_REQUEST

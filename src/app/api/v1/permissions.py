@@ -1,25 +1,28 @@
-A = 'admin'
-SA = 'superadmin'
+from enum import Enum
+
+
+class PermissionRoles(str, Enum):
+    ADMIN = "admin"
+    SUPER_ADMIN = "superadmin"
 
 
 def is_admin(user) -> bool:
     """Проверка роли админа"""
-    if A in user.roles_list():
-        return True
-    return False
+    return True if PermissionRoles.ADMIN in user.roles_list() else False
 
 
 def is_super_admin(user) -> bool:
     """Проверка роли суперадмина"""
-    if SA in user.roles_list():
-        return True
-    return False
+    return True if PermissionRoles.SUPER_ADMIN in user.roles_list() else False
 
 
 def admin_affects_on_superadmin(user1, user2) -> bool:
     """Проверка действий админа к суперадмину"""
-    if SA in user1.roles_list():
+    if PermissionRoles.SUPER_ADMIN in user1.roles_list():
         return False
-    if SA not in user1.roles_list() and SA in user2.roles_list():
+    if (
+        PermissionRoles.SUPER_ADMIN not in user1.roles_list()
+        and PermissionRoles.SUPER_ADMIN in user2.roles_list()
+    ):
         return True
     return False

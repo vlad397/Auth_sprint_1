@@ -201,6 +201,17 @@ paths:
         - "Users"
       summary: "Log in history"
       operationId: get_history
+      parameters:
+        - in: query
+          name: page
+          description: "Page number for pagination history."
+          required: false
+          type: integer
+        - in: query
+          name: count
+          description: "Element count in paginate page"
+          required: false
+          type: integer
       responses:
         200:
           description: "Your history"
