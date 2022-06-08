@@ -1,9 +1,10 @@
 from http import HTTPStatus
 
-from flask_jwt_extended import (get_jwt_identity, jwt_required)
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 
+from app.response_messages import ReqMessage
 from db.db import db
 from db.db_models import Role, RolesUsers, User
 
@@ -14,23 +15,24 @@ from .permissions import admin_affects_on_superadmin, is_admin, is_super_admin
 def create_role(body: dict) -> tuple[str, HTTPStatus]:
     """Создание роли"""
     current_user = get_jwt_identity()
+    print(current_user)
     user = User.query.filter_by(email=current_user).first()
 
     # Если пользователь не админ/суперадмин - отказ
     if not is_admin(user) and not is_super_admin(user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     role = Role(name=body['name'], description=body['description'])
 
     try:
         db.session.add(role)
         db.session.commit()
-        return 'Role created', HTTPStatus.CREATED
+        return ReqMessage.ROLE_CREATED, HTTPStatus.CREATED
     except IntegrityError as err:
         if isinstance(err.orig, UniqueViolation):
-            return 'Role already exists', HTTPStatus.BAD_REQUEST
+            return ReqMessage.ROLE_ALREADY_EXISTS, HTTPStatus.BAD_REQUEST
         else:
-            return 'Unexpected error', HTTPStatus.BAD_REQUEST
+            return ReqMessage.UNEXPECTED_ERROR, HTTPStatus.BAD_REQUEST
 
 
 @jwt_required()
@@ -41,14 +43,14 @@ def change_role(role_id: str, body: dict) -> tuple[str, HTTPStatus]:
 
     # Если пользователь не админ/суперадмин - отказ
     if not is_admin(user) and not is_super_admin(user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     role = Role.query.filter_by(id=role_id).first()
 
     if role:
         # Если пытаются изменить защищенные роли - отказ
         if str(role) in Role.Meta.PROTECTED_ROLE_NAMES:
-            return 'Cannot change this role', HTTPStatus.BAD_REQUEST
+            return ReqMessage.NO_RIGHTS_TO_CHANGE_ROLE, HTTPStatus.BAD_REQUEST
 
         try:
             role.name = body['name']
@@ -56,10 +58,10 @@ def change_role(role_id: str, body: dict) -> tuple[str, HTTPStatus]:
             db.session.commit()
         except IntegrityError as err:
             if isinstance(err.orig, UniqueViolation):
-                return 'Role already exists', HTTPStatus.BAD_REQUEST
-        return 'Role changed', HTTPStatus.OK
+                return ReqMessage.ROLE_ALREADY_EXISTS, HTTPStatus.BAD_REQUEST
+        return ReqMessage.ROLE_CHANGED, HTTPStatus.OK
 
-    return 'No such role', HTTPStatus.NOT_FOUND
+    return ReqMessage.NO_ROLE, HTTPStatus.NOT_FOUND
 
 
 @jwt_required()
@@ -70,20 +72,20 @@ def delete_role(role_id: str) -> tuple[str, HTTPStatus]:
 
     # Если пользователь не админ/суперадмин - отказ
     if not is_admin(user) and not is_super_admin(user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     role = Role.query.filter_by(id=role_id).first()
 
     if role:
         # Если пытаются удалить защищенные роли - отказ
         if str(role) in Role.Meta.PROTECTED_ROLE_NAMES:
-            return 'Cannot delete this role', HTTPStatus.BAD_REQUEST
+            return ReqMessage.NO_RIGHTS_TO_DELETE_ROLE, HTTPStatus.BAD_REQUEST
 
         db.session.delete(role)
         db.session.commit()
-        return 'Role deleted', HTTPStatus.OK
+        return ReqMessage.ROLE_DELETED, HTTPStatus.OK
 
-    return 'No such role', HTTPStatus.NOT_FOUND
+    return ReqMessage.NO_ROLE, HTTPStatus.NOT_FOUND
 
 
 @jwt_required()
@@ -94,17 +96,17 @@ def give_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
 
     # Если пользователь не админ/суперадмин - отказ
     if not is_admin(user) and not is_super_admin(user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     request_user = User.query.filter_by(id=user_id).first()
     role = Role.query.filter_by(id=role_id).first()
 
     if not request_user:
-        return 'No such user', HTTPStatus.NOT_FOUND
+        return ReqMessage.NOT_EXIST_USER, HTTPStatus.NOT_FOUND
 
     # Если админ пытается дать роль суперадмину - отказ
     if admin_affects_on_superadmin(user, request_user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     if request_user and role:
         user_role = RolesUsers(user_id=user_id, role_id=role_id)
@@ -114,11 +116,11 @@ def give_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
             db.session.commit()
         except IntegrityError as err:
             if isinstance(err.orig, UniqueViolation):
-                return 'User already has this role', HTTPStatus.BAD_REQUEST
+                return ReqMessage.USER_HAS_ROLE, HTTPStatus.BAD_REQUEST
 
-        return 'Role is given', HTTPStatus.CREATED
+        return ReqMessage.ROLE_IS_GIVEN, HTTPStatus.CREATED
 
-    return 'No such role', HTTPStatus.NOT_FOUND
+    return ReqMessage.NO_ROLE, HTTPStatus.NOT_FOUND
 
 
 @jwt_required()
@@ -129,16 +131,16 @@ def take_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
 
     # Если пользователь не админ/суперадмин - отказ
     if not is_admin(user) and not is_super_admin(user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     request_user = User.query.filter_by(id=user_id).first()
 
     if not request_user:
-        return 'No such user', HTTPStatus.NOT_FOUND
+        return ReqMessage.NOT_EXIST_USER, HTTPStatus.NOT_FOUND
 
     # Если админ пытается забрать роль суперадмина - отказ
     if admin_affects_on_superadmin(user, request_user):
-        return 'You do not have rights', HTTPStatus.FORBIDDEN
+        return ReqMessage.NO_RIGHTS, HTTPStatus.FORBIDDEN
 
     user_role = RolesUsers.query.filter_by(
         user_id=user_id, role_id=role_id).first()
@@ -146,5 +148,5 @@ def take_role(user_id: str, role_id: str) -> tuple[str, HTTPStatus]:
     if user_role:
         db.session.delete(user_role)
         db.session.commit()
-        return 'Role was taken', HTTPStatus.OK
-    return 'No such role', HTTPStatus.NOT_FOUND
+        return ReqMessage.ROLE_WAS_TAKEN, HTTPStatus.OK
+    return ReqMessage.NO_ROLE, HTTPStatus.NOT_FOUND
