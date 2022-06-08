@@ -51,7 +51,7 @@ paths:
           description: "No such user"
         406:
           description: "Already logged in"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.login"
   /token_refresh:
     post:
       tags:
@@ -61,7 +61,7 @@ paths:
       responses:
         200:
           description: "Token refreshed"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.login"
   /logout:
     post:
       tags:
@@ -71,7 +71,7 @@ paths:
       responses:
         200:
           description: "Access token has been revoked"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.login"
   /logout_refresh:
     post:
       tags:
@@ -81,7 +81,7 @@ paths:
       responses:
         200:
           description: "Refresh token has been revoked"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.login"
   /role:
     post:
       tags:
@@ -215,7 +215,7 @@ paths:
       responses:
         200:
           description: "Your history"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.account_actions"
   /change_login:
     post:
       tags:
@@ -234,7 +234,7 @@ paths:
           description: "Login changed"
         400:
           description: "User with that login already exists or Wrong password"
-      x-swagger-router-controller: "app.api.v1.registration"
+      x-swagger-router-controller: "app.api.v1.account_actions"
   /change_password:
     post:
       tags:
@@ -253,7 +253,172 @@ paths:
           description: "Password changed"
         400:
           description: "Wrong password"
+      x-swagger-router-controller: "app.api.v1.account_actions"
+  /register_oauth/{provider}:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth registration"
+      operationId: register_oauth
+      parameters:
+        - name: "provider"
+          in: "path"
+          description: "Person to login via social networks"
+          required: true
+          type: "string"
+      responses:
+        308:
+          description: "You will be redirected"
+        400:
+          description: "Social network not found"
       x-swagger-router-controller: "app.api.v1.registration"
+  /register_authorize_google:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Authorization for Oauth Log In via google"
+      operationId: register_authorize_google
+      responses:
+        200:
+          description: "Registered successfully"
+        400:
+          description: "Something went wrong or User already exists"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /register_authorize_yandex:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Authorization for Oauth Log In via yandex"
+      operationId: register_authorize_yandex
+      responses:
+        200:
+          description: "Registered successfully"
+        400:
+          description: "Something went wrong or User already exists"
+      x-swagger-router-controller: "app.api.v1.registration"
+  /login_oauth/{provider}:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Log In via google"
+      operationId: login_oauth
+      parameters:
+        - name: "provider"
+          in: "path"
+          description: "Person to login via social networks"
+          required: true
+          type: "string"
+      responses:
+        308:
+          description: "You will be redirected"
+        400:
+          description: "Social network not found"
+      x-swagger-router-controller: "app.api.v1.login"
+  /login_authorize_google:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Authorization for Oauth Log In via google"
+      operationId: login_authorize_google
+      responses:
+        200:
+          description: "Logged in successfully"
+        400:
+          description: "Something went wrong or No such user"
+      x-swagger-router-controller: "app.api.v1.login"
+  /login_authorize_yandex:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Authorization for Oauth Log In via yandex"
+      operationId: login_authorize_yandex
+      responses:
+        200:
+          description: "Logged in successfully"
+        400:
+          description: "Something went wrong or No such user"
+      x-swagger-router-controller: "app.api.v1.login"
+  /create_password:
+    post:
+      tags:
+        - "Users"
+      summary: "You can create password here"
+      operationId: create_password
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "new_password"
+          required: true
+          schema:
+            $ref: "#/definitions/CreatePassword"
+      responses:
+        201:
+          description: "Password created"
+        400:
+          description: "You already have password"
+      x-swagger-router-controller: "app.api.v1.account_actions"
+  /unlink/{provider}:
+    post:
+      tags:
+        - "OAuth"
+      summary: "Oauth unlinking"
+      operationId: unlink
+      parameters:
+        - name: "provider"
+          in: "path"
+          description: "Social network to unlink"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Unlinked"
+        400:
+          description: "You need to create password first"
+        404:
+          description: "Not linked"
+      x-swagger-router-controller: "app.api.v1.login"
+  /link/{provider}:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth linking"
+      operationId: link
+      parameters:
+        - name: "provider"
+          in: "path"
+          description: "Social network to link"
+          required: true
+          type: "string"
+      responses:
+        308:
+          description: "You will be redirected"
+        400:
+          description: "You need to create password first or Already linked"
+      x-swagger-router-controller: "app.api.v1.login"
+  /link_authorize_google:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Authorization for Google linking"
+      operationId: link_authorize_google
+      responses:
+        200:
+          description: "Logged in successfully"
+        400:
+          description: "Something went wrong or No such user"
+      x-swagger-router-controller: "app.api.v1.login"
+  /link_authorize_yandex:
+    get:
+      tags:
+        - "OAuth"
+      summary: "Oauth Authorization for Yandex linking"
+      operationId: link_authorize_yandex
+      responses:
+        200:
+          description: "Logged in successfully"
+        400:
+          description: "Something went wrong or No such user"
+      x-swagger-router-controller: "app.api.v1.login"
 
   
 definitions:
@@ -342,4 +507,14 @@ definitions:
         format: "password"
     example:
       old_password: "SuperVanya228!"
+      new_password: "SuperVanya229!"
+  CreatePassword:
+    type: "object"
+    required:
+      - "new_password"
+    properties:
+      new_password:
+        type: "string"
+        format: "password"
+    example:
       new_password: "SuperVanya229!"

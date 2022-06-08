@@ -64,6 +64,11 @@ class User(db.Model):
         secondary="roles_users",
         backref=db.backref("users", lazy="dynamic"),
     )
+    social_networks = db.relationship(
+        "SocialNetwork",
+        secondary="social_user",
+        backref=db.backref("users", lazy="dynamic"),
+    )
 
     def __init__(self, first_name, second_name, email, login, password):
         self.first_name = first_name
@@ -77,6 +82,9 @@ class User(db.Model):
 
     def roles_list(self) -> list[str]:
         return [role.name for role in self.roles]
+
+    def social_list(self) -> list[str]:
+        return [social.name for social in self.social_networks]
 
 
 class RevokedTokenModel(db.Model):
@@ -107,3 +115,30 @@ class AuthHistory(db.Model):
 
     def __repr__(self):
         return f'{self.timestamp}::{self.browser}::{self.platform}'
+
+
+class SocialNetwork(db.Model):
+    __tablename__ = "social"
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
+                   unique=True, nullable=False)
+    name = db.Column(db.String, unique=True, nullable=False)
+
+    def __str__(self):
+        return self.name
+
+
+class SocialUser(db.Model):
+    __tablename__ = "social_user"
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'social_id', name='unique_user_social'),
+    )
+
+    id = db.Column(db.BigInteger(), primary_key=True)
+    user_id = db.Column(
+        "user_id", UUID(as_uuid=True), db.ForeignKey("users.id"))
+    social_id = db.Column(
+        "social_id", UUID(as_uuid=True), db.ForeignKey("social.id"))
+
+    def __str__(self):
+        return f"<User {self.user_id} Network {self.social_id}>"

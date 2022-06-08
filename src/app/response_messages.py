@@ -2,13 +2,31 @@ from enum import Enum
 
 
 class ReqMessage(str, Enum):
-    SUCCESS_REG = "Successfully registered"
-    USER_EXIST = "User already exists"
-    ALREADY_LOGIN = "Already logged in"
-    NOT_EXIST_USER = "No such user"
-    WRONG_PASSWORD = "Wrong password"
-    LOGOUT_ACCESS = "Access token has been revoked"
-    LOGOUT_REFRESH = "Refresh token has been revoked"
-    SUCCESS_LOGIN_CHANGE = "Login changed"
-    SUCCESS_PASS_CHANGE="Password changed successful"
-    UNEXPECTED_ERROR = "Unexpected error"
+    SUCCESS_REG = 'Successfully registered'
+    USER_EXIST = 'User already exists'
+    ALREADY_LOGIN = 'Already logged in'
+    NOT_EXIST_USER = 'No such user'
+    WRONG_PASSWORD = 'Wrong password'
+    LOGOUT_ACCESS = 'Access token has been revoked'
+    LOGOUT_REFRESH = 'Refresh token has been revoked'
+    SUCCESS_LOGIN_CHANGE = 'Login changed'
+    SUCCESS_PASS_CHANGE = 'Password changed successful'
+    UNEXPECTED_ERROR = 'Unexpected error'
+    SUCCESS_PASS_CREATE = 'Password created successful'
+    SOCIAL_NOT_FOUND = 'Social network not found'
+    SOMETHING_WENT_WRONG = 'Something went wrong'
+    NEED_PASSWORD = 'You need to create password first'
+    PROVIDER_NOT_LINKED = '{0} not linked'
+    PROVIDER_UNLINKED = '{0} unlinked'
+    PROVIDER_ALREADY_LINKED = '{0} is already linked'
+    NO_RIGHTS = 'You do not have rights'
+    ROLE_CREATED = 'Role created'
+    ROLE_ALREADY_EXISTS = 'Role already exists'
+    NO_RIGHTS_TO_CHANGE_ROLE = 'Cannot change this role'
+    NO_RIGHTS_TO_DELETE_ROLE = 'Cannot change this role'
+    ROLE_CHANGED = 'Role changed'
+    ROLE_DELETED = 'Role deleted'
+    NO_ROLE = 'No such role'
+    USER_HAS_ROLE = 'User already has this role'
+    ROLE_IS_GIVEN = 'Role is given'
+    ROLE_WAS_TAKEN = 'Role was taken'
