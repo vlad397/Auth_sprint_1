@@ -1,0 +1,17 @@
+version: "3.9"
+
+networks:
+  default:
+    name: $NETWORK_NAME
+
+services:
+  functional-tests:
+    env_file:
+      - .env
+    build:
+      context: $PATH_TO_ROOT_FROM_TESTS
+      dockerfile: tests/functional/Dockerfile
+    image: yp_functional_tests
+
+
+

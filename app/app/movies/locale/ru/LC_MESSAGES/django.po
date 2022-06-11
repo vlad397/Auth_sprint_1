@@ -1,0 +1,141 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-16 21:51+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: movies/apps.py:12
+msgid "app.verbose_name"
+msgstr "Кино"
+
+#: movies/models.py:15
+msgid "timestamp.created"
+msgstr "создано"
+
+#: movies/models.py:16
+msgid "timestamp.modified"
+msgstr "модифицировано"
+
+#: movies/models.py:38
+msgid "genre.name"
+msgstr "название"
+
+#: movies/models.py:40
+msgid "genre.description"
+msgstr "описание"
+
+#: movies/models.py:49
+msgid "genre.meta.verbose_name"
+msgstr "жанр"
+
+#: movies/models.py:50
+msgid "genre.meta.verbose_name_plural"
+msgstr "жанры"
+
+#: movies/models.py:64
+msgid "person.full_name"
+msgstr "Ф.И.О"
+
+#: movies/models.py:66
+msgid "person.birth_date"
+msgstr "день рождения"
+
+#: movies/models.py:76
+msgid "person.meta.verbose_name"
+msgstr "персона"
+
+#: movies/models.py:77
+msgid "person.meta.verbose_name_plural"
+msgstr "персоны"
+
+#: movies/models.py:99
+msgid "genre_film_work.meta.verbose_name"
+msgstr "жанр"
+
+#: movies/models.py:100
+msgid "genre_film_work.meta.verbose_name_plural"
+msgstr "жанры"
+
+#: movies/models.py:118
+msgid "person_film_work.rolechoices.actor"
+msgstr "актёр"
+
+#: movies/models.py:119
+msgid "person_film_work.rolechoices.director"
+msgstr "режиссер"
+
+#: movies/models.py:120
+msgid "person_film_work.rolechoices.writer"
+msgstr "сценарист"
+
+#: movies/models.py:130
+msgid "person_film_work.role"
+msgstr "роль"
+
+#: movies/models.py:141
+msgid "person_film_work.meta.verbose_name"
+msgstr "персона"
+
+#: movies/models.py:142
+msgid "person_film_work.meta.verbose_name_plural"
+msgstr "персоны"
+
+#: movies/models.py:157
+msgid "film_work.typechoices.movie"
+msgstr "фильм"
+
+#: movies/models.py:158
+msgid "film_work.typechoices.tv_show"
+msgstr "тв-шоу"
+
+#: movies/models.py:163
+msgid "film_work.name"
+msgstr "название"
+
+#: movies/models.py:165
+msgid "film_work.description"
+msgstr "описание"
+
+#: movies/models.py:170
+msgid "film_work.creation_date"
+msgstr "дата выхода"
+
+#: movies/models.py:175
+msgid "film_work.rating"
+msgstr "рейтинг"
+
+#: movies/models.py:182
+msgid "film_work.type"
+msgstr "тип"
+
+#: movies/models.py:199
+msgid "film_work.certificate"
+msgstr "сертификат"
+
+#: movies/models.py:205
+msgid "film_work.file"
+msgstr "файл сертификата"
+
+#: movies/models.py:215
+msgid "film_work.meta.verbose_name"
+msgstr "кинопроизведение"
+
+#: movies/models.py:216
+msgid "film_work.meta.verbose_name_plural"
+msgstr "кинопроизведения"

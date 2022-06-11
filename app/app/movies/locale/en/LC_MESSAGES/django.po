@@ -1,0 +1,139 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-02-16 21:51+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: movies/apps.py:12
+msgid "app.verbose_name"
+msgstr ""
+
+#: movies/models.py:15
+msgid "timestamp.created"
+msgstr ""
+
+#: movies/models.py:16
+msgid "timestamp.modified"
+msgstr ""
+
+#: movies/models.py:38
+msgid "genre.name"
+msgstr ""
+
+#: movies/models.py:40
+msgid "genre.description"
+msgstr ""
+
+#: movies/models.py:49
+msgid "genre.meta.verbose_name"
+msgstr ""
+
+#: movies/models.py:50
+msgid "genre.meta.verbose_name_plural"
+msgstr ""
+
+#: movies/models.py:64
+msgid "person.full_name"
+msgstr ""
+
+#: movies/models.py:66
+msgid "person.birth_date"
+msgstr ""
+
+#: movies/models.py:76
+msgid "person.meta.verbose_name"
+msgstr ""
+
+#: movies/models.py:77
+msgid "person.meta.verbose_name_plural"
+msgstr ""
+
+#: movies/models.py:99
+msgid "genre_film_work.meta.verbose_name"
+msgstr ""
+
+#: movies/models.py:100
+msgid "genre_film_work.meta.verbose_name_plural"
+msgstr ""
+
+#: movies/models.py:118
+msgid "person_film_work.rolechoices.actor"
+msgstr ""
+
+#: movies/models.py:119
+msgid "person_film_work.rolechoices.director"
+msgstr ""
+
+#: movies/models.py:120
+msgid "person_film_work.rolechoices.writer"
+msgstr ""
+
+#: movies/models.py:130
+msgid "person_film_work.role"
+msgstr ""
+
+#: movies/models.py:141
+msgid "person_film_work.meta.verbose_name"
+msgstr ""
+
+#: movies/models.py:142
+msgid "person_film_work.meta.verbose_name_plural"
+msgstr ""
+
+#: movies/models.py:157
+msgid "film_work.typechoices.movie"
+msgstr ""
+
+#: movies/models.py:158
+msgid "film_work.typechoices.tv_show"
+msgstr ""
+
+#: movies/models.py:163
+msgid "film_work.name"
+msgstr ""
+
+#: movies/models.py:165
+msgid "film_work.description"
+msgstr ""
+
+#: movies/models.py:170
+msgid "film_work.creation_date"
+msgstr ""
+
+#: movies/models.py:175
+msgid "film_work.rating"
+msgstr ""
+
+#: movies/models.py:182
+msgid "film_work.type"
+msgstr ""
+
+#: movies/models.py:199
+msgid "film_work.certificate"
+msgstr ""
+
+#: movies/models.py:205
+msgid "film_work.file"
+msgstr ""
+
+#: movies/models.py:215
+msgid "film_work.meta.verbose_name"
+msgstr ""
+
+#: movies/models.py:216
+msgid "film_work.meta.verbose_name_plural"
+msgstr ""

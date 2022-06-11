@@ -1,0 +1,49 @@
+version: "3.9"
+
+networks:
+  default:
+    name: $NETWORK_NAME
+
+services:
+  api:
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      elasticsearch-index-schema:
+        condition: service_completed_successfully
+      tests-and-dev-start-sync:
+        condition: service_completed_successfully
+    image: yp_api
+    build:
+      context: $PATH_TO_ROOT_FROM_TESTS/api/
+      dockerfile: Dockerfile
+    healthcheck:
+      test: curl -sS http://127.0.0.1:8000/api/openapi || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  api-web:
+    env_file:
+      - .env
+    image: nginx:latest
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - $PATH_TO_ROOT_FROM_TESTS/api/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 8000:8000
+    healthcheck:
+      test: curl -sS http://127.0.0.1:8000/ || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+
