@@ -17,3 +17,7 @@ Flask-Migrate==3.1.0
 typer==0.4.1
 Flask-limiter==2.4.5.1
 redis==4.2.1
+opentelemetry-sdk==1.10.0
+opentelemetry-api==1.10.0
+opentelemetry-instrumentation-flask==0.29b1
+opentelemetry-exporter-jaeger==1.10.0
