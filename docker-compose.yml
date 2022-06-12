@@ -7,7 +7,7 @@ networks:
 services:
   postgres-admin:
     env_file:
-      - .env
+      - .postgres_admin_env
     image: postgres:13.3
     user: $POSTGRES_USER:$POSTGRES_GROUP
     healthcheck:
@@ -206,7 +206,7 @@ services:
 
   postgres-auth:
     env_file:
-      - .env
+      - .postgres_auth_env
     image: postgres:13.3
     user: $POSTGRES_USER:$POSTGRES_GROUP
     healthcheck:
@@ -243,6 +243,12 @@ services:
       - ./.env
     expose:
       - "8008"
+  
+  jaeger:
+    image: jaegertracing/all-in-one:latest 
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
 
   nginx-auth:
       image: nginx:latest
