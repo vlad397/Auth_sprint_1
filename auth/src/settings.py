@@ -3,6 +3,7 @@ from pydantic import BaseSettings, Field
 
 class Settings(BaseSettings):
     host: str = Field('127.0.0.1', env='POSTGRES_HOST')
+    port: str = Field('6543', env='POSTGRES_PORT')
     pg_password: str = Field('123qwe', env='POSTGRES_PASSWORD')
     pg_user: str = Field('app', env='POSTGRES_USER')
     pg_db: str = Field('users', env='POSTGRES_DB')
