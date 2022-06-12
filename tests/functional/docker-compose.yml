@@ -5,7 +5,7 @@ networks:
     name: $NETWORK_NAME
 
 services:
-  postgres-admin:
+  postgres:
     env_file:
       - .env
     image: postgres:13.3
@@ -26,7 +26,7 @@ services:
       postgres:
         condition: service_healthy
     restart: "no"
-    entrypoint: ["psql", "-h", "postgres-admin",
+    entrypoint: ["psql", "-h", "postgres",
                  "-U", $POSTGRES_USER, "-d", $POSTGRES_DB,
                  "-c","CREATE SCHEMA IF NOT EXISTS content"
     ]
@@ -35,7 +35,7 @@ services:
     env_file:
       - .env
     environment:
-      - DB_HOST=postgres-admin
+      - DB_HOST=postgres
       - DB_USER=$POSTGRES_USER
       - DB_NAME=$POSTGRES_DB
       - DB_PASSWORD=$POSTGRES_PASSWORD
@@ -44,10 +44,10 @@ services:
         condition: service_completed_successfully
     image: yp_app
     build:
-      context: ./app/
+      context: $PATH_TO_ROOT_FROM_TESTS/app/
       dockerfile: Dockerfile
     volumes:
-      - ./app/static:/app/static:rw
+      - $PATH_TO_ROOT_FROM_TESTS/app/static:/app/static:rw
     healthcheck:
       test: curl -sS http://127.0.0.1:8000 || exit 1
       interval: 10s
@@ -66,8 +66,8 @@ services:
         condition: service_healthy
     restart: "no"
     volumes:
-      - ./app/app.data.sql:/app.data.sql
-    entrypoint: ["psql", "-h", "postgres-admin",
+      - $PATH_TO_ROOT_FROM_TESTS/app/app.data.sql:/app.data.sql
+    entrypoint: ["psql", "-h", "postgres",
                  "-U", $POSTGRES_USER, "-d", $POSTGRES_DB,
                  "-f","/app.data.sql"
     ]
@@ -80,8 +80,8 @@ services:
       postgres-app-data-restore:
         condition: service_completed_successfully
     volumes:
-      - ./app/nginx.conf:/etc/nginx/nginx.conf
-      - ./app/static:/static:ro
+      - $PATH_TO_ROOT_FROM_TESTS/app/nginx.conf:/etc/nginx/nginx.conf
+      - $PATH_TO_ROOT_FROM_TESTS/app/static:/static:ro
     ports:
       - 9000:8000
 
@@ -131,14 +131,14 @@ services:
         condition: service_healthy
     restart: "no"
     volumes:
-      - ./etl/es_index.sh:/es_index.sh
+      - $PATH_TO_ROOT_FROM_TESTS/etl/es_index.sh:/es_index.sh
     entrypoint: /bin/sh /es_index.sh
 
   etl:
     env_file:
       - .env
     environment:
-      - DB_HOST=postgres-admin
+      - DB_HOST=postgres
       - DB_USER=$POSTGRES_USER
       - DB_NAME=$POSTGRES_DB
       - DB_PASSWORD=$POSTGRES_PASSWORD
@@ -147,8 +147,8 @@ services:
       elasticsearch-index-schema:
         condition: service_completed_successfully
     volumes:
-      - ./etl/:/etl/
-      - ./etl/requirements.txt:/requirements.txt
+      - $PATH_TO_ROOT_FROM_TESTS/etl/:/etl/
+      - $PATH_TO_ROOT_FROM_TESTS/etl/requirements.txt:/requirements.txt
     entrypoint: >
       /bin/bash -c "
           pip3 install -r /requirements.txt 2>/dev/null 1>/dev/null &&
@@ -165,91 +165,17 @@ services:
         condition: service_started
     restart: "no"
     volumes:
-      - ./etl/etl_check_initial_load.sh:/etl_check_initial_load.sh
+      - $PATH_TO_ROOT_FROM_TESTS/etl/etl_check_initial_load.sh:/etl_check_initial_load.sh
     entrypoint: /bin/sh /etl_check_initial_load.sh
 
-  api:
+  tests-and-dev-start-sync:
     env_file:
       - .env
+    image: appropriate/curl
     depends_on:
-      redis:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-      elasticsearch-index-schema:
-        condition: service_completed_successfully
       check-etl-initial-load:
         condition: service_completed_successfully
-    image: yp_api
-    build:
-      context: ./api/
-      dockerfile: Dockerfile
-    healthcheck:
-      test: curl -sS http://127.0.0.1:8000/api/openapi || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-
-  api-web:
-    env_file:
-      - .env
-    image: nginx:latest
-    depends_on:
-      api:
-        condition: service_healthy
-    volumes:
-      - ./api/nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - 8000:8000
+    restart: "no"
+    entrypoint: /bin/true
 
 
-  postgres-auth:
-    env_file:
-      - .env
-    image: postgres:13.3
-    user: $POSTGRES_USER:$POSTGRES_GROUP
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-  
-  redis-auth:
-    env_file:
-      - .env
-    image: bitnami/redis:latest # поддерживает env REDIS_PASSWORD
-    volumes:
-      - ./auth/redis.conf:/usr/local/etc/redis/redis.conf
-    healthcheck:
-      test: redis-cli -a $REDIS_PASSWORD ping || exit 1
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 5s
-    expose:
-      - "6379"
-  
-  auth_app:
-    build:
-      context: ./auth
-      dockerfile: Dockerfile
-    depends_on:
-      - redis-auth:
-        condition: service_healthy
-      - postgres-auth:
-        condition: service_healthy
-    env_file:
-      - ./.env
-    expose:
-      - "8008"
-
-  nginx-auth:
-      image: nginx:latest
-      volumes:
-        - ./nginx/etc/nginx/conf.d:/etc/nginx/conf.d
-        - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      depends_on:
-        - auth_app
-      ports:
-        - "80:80"
