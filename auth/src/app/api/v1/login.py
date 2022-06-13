@@ -22,7 +22,7 @@ def login(body: dict) -> tuple[str | dict, HTTPStatus]:
 
     # Если в заголовке уже есть токен, то вход не нужен
     if current_token:
-        return ReqMessage.ALREADY_LOGIN, HTTPStatus.NOT_ACCEPTABLE
+        return ReqMessage.ALREADY_LOGIN, HTTPStatus.ACCEPTED
 
     user = User.query.filter_by(email=body['email']).first()
     if not user:
