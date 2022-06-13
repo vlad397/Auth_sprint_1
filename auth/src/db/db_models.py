@@ -1,8 +1,7 @@
-from datetime import datetime
 import enum
 import uuid
-from sqlalchemy import UniqueConstraint
 
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 
 from .db import db
@@ -24,6 +23,15 @@ def create_partition(target, connection, **kw) -> None:
 class BasicRoleEnum(enum.Enum):
     admin = 'admin'
     superadmin = 'superadmin'
+
+    @classmethod
+    def list(cls):
+        return list(map(lambda r: r.value, cls))
+
+
+class BasicSocialEnum(enum.Enum):
+    google = 'google'
+    yandex = 'yandex'
 
     @classmethod
     def list(cls):

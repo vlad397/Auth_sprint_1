@@ -6,9 +6,11 @@ from flask import request
 from flask_jwt_extended import create_access_token, create_refresh_token
 from werkzeug.local import LocalProxy
 
+import config
 from app.response_messages import ReqMessage
 from db.db import db
-from db.db_models import AuthHistory, SocialNetwork, SocialUser, User
+from db.db_models import (AuthHistory, BasicSocialEnum, SocialNetwork,
+                          SocialUser, User)
 
 
 def add_auth_history(user: User, request: LocalProxy) -> None:
@@ -23,7 +25,7 @@ def add_auth_history(user: User, request: LocalProxy) -> None:
 
 
 def basic_oauth_register_authorization(
-    user: UserInfo, provider: str
+    user: UserInfo | dict, provider: str
 ) -> tuple[str | dict, HTTPStatus]:
     """Базовая функция авторизации в соц сети для регистрации"""
 
@@ -89,7 +91,7 @@ def basic_oauth_link_authorization(
 
 
 def basic_oauth_login_authorization(
-    user: UserInfo, provider: str
+    user: UserInfo | dict, provider: str
 ) -> tuple[str | dict, HTTPStatus]:
     """Базовая функция авторизации в соц сети для входа в аккаунт"""
     # Ищем пользователя в базе
@@ -123,3 +125,30 @@ def basic_oauth_login_authorization(
         'access_token': access_token,
         'refresh_token': refresh_token
         }, HTTPStatus.CREATED)
+
+
+def basic_authorize_google() -> UserInfo:
+    """Базовая функция для получения информации о пользователе"""
+    google = config.oauth.create_client(BasicSocialEnum.google.value)
+    token = google.authorize_access_token()
+    resp = google.get('userinfo', token=token)
+    user = resp.json()
+
+    #  Если после авторизации в гугле информация пустая - пробуем иначе
+    if not user:
+        user = config.oauth.google.userinfo()
+
+    return user
+
+
+def basic_authorize_yandex() -> UserInfo | dict:
+    """Базовая функция для получения информации о пользователе"""
+    yandex = config.oauth.create_client(BasicSocialEnum.yandex.value)
+    token = yandex.authorize_access_token()
+    user = yandex.get('userinfo', token=token)
+
+    # Если после авторизации в яндексе информация пустая - пробуем иначе
+    if not user:
+        user = dict(config.oauth.yandex.userinfo())
+
+    return user

@@ -9,10 +9,11 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_migrate import Migrate
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider        
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (BatchSpanProcessor,
+                                            ConsoleSpanExporter)
 
 from db.db import db, init_db
 from db.db_models import RevokedTokenModel
@@ -30,10 +31,11 @@ app.secret_key = settings.secret_key
 app.config['JWT_SECRET_KEY'] = settings.jwt_secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = (f'postgresql://{settings.pg_user}:'
                                          f'{settings.pg_password}@'
-                                         f'{settings.host}:f{settings.port}/{settings.pg_db}')
+                                         f'{settings.host}:{settings.port}/{settings.pg_db}')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['RATELIMIT_STORAGE_URI'] = (f'redis://{settings.redis_host}:'
                                        f'{settings.redis_port}')
+
 
 @app.before_request
 def before_request():
@@ -44,7 +46,7 @@ def before_request():
 
 init_db(app)
 app.app_context().push()
-db.create_all()
+
 
 def configure_tracer() -> None:
     trace.set_tracer_provider(TracerProvider())
@@ -58,6 +60,7 @@ def configure_tracer() -> None:
     )
     # Чтобы видеть трейсы в консоли
     trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(ConsoleSpanExporter()))
+
 
 configure_tracer()
 
@@ -82,13 +85,13 @@ google = oauth.register(
     name='google',
     client_id=settings.client_id_google,
     client_secret=settings.client_secret_google,
-    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_url=settings.google_access_token_url,
     access_token_params=None,
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    authorize_url=settings.google_authorize_url,
     authorize_params=None,
-    api_base_url='https://www.googleapis.com/oauth2/v1/',
-    userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
-    client_kwargs={'scope': 'openid email profile'},
+    api_base_url=settings.google_api_base_url,
+    userinfo_endpoint=settings.google_userinfo_endpoint,
+    client_kwargs={'scope': settings.google_client_kwargs},
 )
 
 
@@ -106,12 +109,12 @@ yandex = oauth.register(
     authorize_params={'response_type': 'code', },
     client_id=settings.client_id_yandex,
     client_secret=settings.client_secret_yandex,
-    userinfo_endpoint='https://login.yandex.ru/info',
+    userinfo_endpoint=settings.yandex_userinfo_endpoint,
     token_placement='header',
     userinfo_compliance_fix=yandex_compliance_fix,
-    access_token_url='https://oauth.yandex.ru/token',
-    authorize_url='https://oauth.yandex.ru/authorize',
-    api_base_url='https://oauth.yandex.ru',
+    access_token_url=settings.yandex_access_token_url,
+    authorize_url=settings.yandex_authorize_url,
+    api_base_url=settings.yandex_api_base_url,
 )
 
 

@@ -10,9 +10,11 @@ from werkzeug.wrappers.response import Response
 import config
 from app.response_messages import ReqMessage
 from db.db import db
-from db.db_models import RevokedTokenModel, SocialNetwork, SocialUser, User
+from db.db_models import (BasicSocialEnum, RevokedTokenModel, SocialNetwork,
+                          SocialUser, User)
 
-from .basics import (add_auth_history, basic_oauth_link_authorization,
+from .basics import (add_auth_history, basic_authorize_google,
+                     basic_authorize_yandex, basic_oauth_link_authorization,
                      basic_oauth_login_authorization)
 
 
@@ -86,9 +88,8 @@ def logout_refresh() -> tuple[str, HTTPStatus]:
 def login_oauth(provider: str) -> Response | tuple[str, HTTPStatus]:
     """Функция для входа через OAuth Google,
     перенаправляет в login_authorize_google для авторизации через Google"""
-
     # Если указана несуществующая соц сеть - ошибка
-    if provider not in ['google', 'yandex']:
+    if provider not in BasicSocialEnum.list():
         return 'Social network not found', HTTPStatus.BAD_REQUEST
 
     social = config.oauth.create_client(provider)
@@ -101,37 +102,24 @@ def login_oauth(provider: str) -> Response | tuple[str, HTTPStatus]:
 
 def login_authorize_google() -> tuple[str | dict, HTTPStatus]:
     """Функция для входа через OAuth Google"""
-    google = config.oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo', token=token)
-    user = resp.json()
-
-    #  Если после авторизации в гугле информация пустая - пробуем иначе
-    if not user:
-        user = config.oauth.google.userinfo()
+    user = basic_authorize_google()
 
     # Если после авторизации в гугле информация все еще пустая - ошибка
     if not user:
         return ReqMessage.SOMETHING_WENT_WRONG, HTTPStatus.BAD_REQUEST
 
-    return basic_oauth_login_authorization(user, 'google')
+    return basic_oauth_login_authorization(user, BasicSocialEnum.google.value)
 
 
 def login_authorize_yandex() -> tuple[str | dict, HTTPStatus]:
-    """Функция для входа через OAuth Google"""
-    yandex = config.oauth.create_client('yandex')
-    token = yandex.authorize_access_token()
-    user = yandex.get('userinfo', token=token)
-
-    # Если после авторизации в яндексе информация пустая - пробуем иначе
-    if not user:
-        user = dict(config.oauth.yandex.userinfo())
+    """Функция для входа через OAuth Yandex"""
+    user = basic_authorize_yandex()
 
     # Если все равно нет информации - ошибка
     if not user:
         return ReqMessage.SOMETHING_WENT_WRONG, HTTPStatus.BAD_REQUEST
 
-    return basic_oauth_login_authorization(user, 'yandex')
+    return basic_oauth_login_authorization(user, BasicSocialEnum.yandex.value)
 
 
 @jwt_required()
@@ -166,7 +154,7 @@ def link(provider: str):
     """Функция привязывания аккаунта"""
 
     # Если указана несуществующая соц сеть - ошибка
-    if provider not in ['google', 'yandex']:
+    if provider not in BasicSocialEnum.list():
         return ReqMessage.SOCIAL_NOT_FOUND, HTTPStatus.BAD_REQUEST
 
     current_user = get_jwt_identity()
@@ -198,9 +186,7 @@ def link(provider: str):
 
 @jwt_required()
 def link_authorize_google():
-    google = config.oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo', token=token)
+    resp = basic_authorize_google()
 
     # Если после авторизации в гугле информация пустая - ошибка
     if not resp:
@@ -208,18 +194,12 @@ def link_authorize_google():
 
     user = get_jwt_identity()
 
-    return basic_oauth_link_authorization(user, 'google')
+    return basic_oauth_link_authorization(user, BasicSocialEnum.google.value)
 
 
 @jwt_required()
 def link_authorize_yandex():
-    yandex = config.oauth.create_client('yandex')
-    token = yandex.authorize_access_token()
-    resp = yandex.get('userinfo', token=token)
-
-    # Если после авторизации в яндексе информация пустая - пробуем иначе
-    if not resp:
-        resp = dict(config.oauth.yandex.userinfo())
+    resp = basic_authorize_yandex()
 
     # Если все равно нет информации - ошибка
     if not resp:
@@ -227,4 +207,4 @@ def link_authorize_yandex():
 
     user = get_jwt_identity()
 
-    return basic_oauth_link_authorization(user, 'yandex')
+    return basic_oauth_link_authorization(user, BasicSocialEnum.yandex.value)

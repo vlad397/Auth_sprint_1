@@ -11,9 +11,10 @@ from werkzeug.wrappers.response import Response
 import config
 from app.response_messages import ReqMessage
 from db.db import db
-from db.db_models import User
+from db.db_models import BasicSocialEnum, User
 
-from .basics import basic_oauth_register_authorization
+from .basics import (basic_authorize_google, basic_authorize_yandex,
+                     basic_oauth_register_authorization)
 
 
 @draft4_format_checker.checks('email')
@@ -54,7 +55,7 @@ def register_oauth(provider: str) -> Response | tuple[str, HTTPStatus]:
     """Функция для регистрации через OAuth Google,
     перенаправляет в register_authorize_google для авторизации через Google"""
     # Если указали несуществуюую соц сеть - ошибка
-    if provider not in ['google', 'yandex']:
+    if provider not in BasicSocialEnum.list():
         return ReqMessage.SOCIAL_NOT_FOUND, HTTPStatus.BAD_REQUEST
 
     social = config.oauth.create_client(provider)
@@ -67,34 +68,21 @@ def register_oauth(provider: str) -> Response | tuple[str, HTTPStatus]:
 
 def register_authorize_google() -> tuple[str | dict, HTTPStatus]:
     """Функция для авторизации через OAuth Google"""
-    google = config.oauth.create_client('google')
-    token = google.authorize_access_token()
-    resp = google.get('userinfo', token=token)
-    user = resp.json()
-
-    #  Если после авторизации в гугле информация пустая - пробуем иначе
-    if not user:
-        user = config.oauth.google.userinfo()
+    user = basic_authorize_google()
 
     # Если после авторизации в гугле информация все еще пустая - ошибка
     if not user:
         return ReqMessage.SOMETHING_WENT_WRONG, HTTPStatus.BAD_REQUEST
 
-    return basic_oauth_register_authorization(user, 'google')
+    return basic_oauth_register_authorization(user, BasicSocialEnum.google.value)
 
 
 def register_authorize_yandex() -> tuple[str | dict, HTTPStatus]:
     """Функция для авторизации через OAuth Yandex"""
-    yandex = config.oauth.create_client('yandex')
-    token = yandex.authorize_access_token()
-    user = yandex.get('userinfo', token=token)
-
-    # Если после авторизации в яндексе информация пустая - пробуем иначе
-    if not user:
-        user = dict(config.oauth.yandex.userinfo())
+    user = basic_authorize_yandex()
 
     # Если все равно нет информации - ошибка
     if not user:
         return ReqMessage.SOMETHING_WENT_WRONG, HTTPStatus.BAD_REQUEST
 
-    return basic_oauth_register_authorization(user, 'yandex')
+    return basic_oauth_register_authorization(user, BasicSocialEnum.yandex.value)
