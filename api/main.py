@@ -1,9 +1,11 @@
+import http
 import logging
 
 import aioredis
+import httpx
 import uvicorn
 from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
 
 from api.v1 import films, genres, persons
@@ -42,6 +44,29 @@ async def shutdown():
     await redis.redis.close()
     await redis.redis.wait_closed()
     await elastic.es.close()
+
+
+@app.middleware("http")
+async def verify_token(request: Request, call_next):
+    if request.headers['Authorization']:
+        async with httpx.AsyncClient() as client:
+            is_authorized = await client.post(
+                f"http://{config.AUTH_APP}/login",
+                headers={"Authorization": request.headers['Authorization']}
+            )
+
+        if is_authorized.status_code == http.HTTPStatus.ACCEPTED:
+            response = await call_next(request)
+        else:
+            return ORJSONResponse(content={
+                "message": "You need login for view films"
+            }, status_code=401)
+        
+        return response
+    else:
+        return ORJSONResponse(content={
+            "message": "we do not allow mobiles"
+        }, status_code=401)
 
 
 app.include_router(films.router, prefix='/api/v1/films')

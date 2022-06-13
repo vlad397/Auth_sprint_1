@@ -8,6 +8,19 @@ from sqlalchemy.dialects.postgresql import UUID
 from .db import db
 
 
+def create_partition(target, connection, **kw) -> None:
+    """ creating partition by user_sign_in """
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_smart" PARTITION OF "users_sign_in" FOR VALUES IN ('smart')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_mobile" PARTITION OF "users_sign_in" FOR VALUES IN ('mobile')"""
+    )
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS "user_sign_in_web" PARTITION OF "users_sign_in" FOR VALUES IN ('web')"""
+    )
+
+
 class BasicRoleEnum(enum.Enum):
     admin = 'admin'
     superadmin = 'superadmin'
@@ -106,6 +119,13 @@ class RevokedTokenModel(db.Model):
 
 class AuthHistory(db.Model):
     __tablename__ = "auth_history"
+    __table_args__ = (
+        UniqueConstraint('id', 'user_device_type'),
+        {
+            'postgresql_partition_by': 'LIST (user_device_type)',
+            'listeners': [('after_create', create_partition)],
+        }
+    )
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4,
                    unique=True, nullable=False)
@@ -114,6 +134,7 @@ class AuthHistory(db.Model):
     timestamp = db.Column(db.DateTime)
     browser = db.Column(db.Text, nullable=True)
     platform = db.Column(db.Text, nullable=True)
+    user_device_type = db.Column(db.Text, primary_key=True)
 
     def __repr__(self):
         return f'{self.timestamp}::{self.browser}::{self.platform}'
@@ -144,36 +165,3 @@ class SocialUser(db.Model):
 
     def __str__(self):
         return f"<User {self.user_id} Network {self.social_id}>"
-
-
-def create_partition(target, connection, **kw) -> None:
-    """ creating partition by user_sign_in """
-    connection.execute(
-        """CREATE TABLE IF NOT EXISTS "user_sign_in_smart" PARTITION OF "users_sign_in" FOR VALUES IN ('smart')"""
-    )
-    connection.execute(
-        """CREATE TABLE IF NOT EXISTS "user_sign_in_mobile" PARTITION OF "users_sign_in" FOR VALUES IN ('mobile')"""
-    )
-    connection.execute(
-        """CREATE TABLE IF NOT EXISTS "user_sign_in_web" PARTITION OF "users_sign_in" FOR VALUES IN ('web')"""
-    )
-
-
-class UserSignIn(db.Model):
-    __tablename__ = 'users_sign_in'
-    __table_args__ = (
-        UniqueConstraint('id', 'user_device_type'),
-        {
-            'postgresql_partition_by': 'LIST (user_device_type)',
-            'listeners': [('after_create', create_partition)],
-        }
-    )
-
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
-    user_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'))
-    logged_in_at  = db.Column(db.DateTime, default=datetime.datetime.utcnow)
-    user_agent = db.Column(db.Text)
-    user_device_type = db.Column(db.Text, primary_key=True)
-
-    def __repr__(self):
-        return f'<UserSignIn {self.user_id}:{self.logged_in_at }>' 

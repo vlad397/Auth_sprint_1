@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 from pathlib import Path
 from logging import config as logging_config
@@ -21,5 +22,7 @@ ELASTICSEARCH_ADDRESS = os.getenv(
     'ELASTICSEARCH_ADDRESS',
     '["http://localhost:9200"]'
 )
+
+AUTH_APP = os.getenv("AUTH_APP", "auth")
 
 BASE_DIR = Path(__file__).parent.parent
